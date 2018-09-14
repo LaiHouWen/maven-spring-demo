@@ -1,0 +1,4 @@
+com\spring\Application.class
+com\spring\servlet\HellowServlet.class
+com\spring\bean\HellowWord.class
+com\spring\bean\User.class
