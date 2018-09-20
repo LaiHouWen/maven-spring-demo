@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+   	http://www.springframework.org/schema/beans     
+   	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   	http://www.springframework.org/schema/mvc
+   	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+   	http://www.springframework.org/schema/context 
+  	http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+
+	<!-- 注册mvc注解驱动 让容器创建HttpMessageConverter 对象 .. -->
+	<!-- 激活基于注解的配置 @RequestMapping, @ExceptionHandler,数据绑定 ,@NumberFormat , 
+		@DateTimeFormat ,@Controller ,@Valid ,@RequestBody ,@ResponseBody等 -->
+	<mvc:annotation-driven>
+
+		<mvc:message-converters register-defaults="false">
+
+			<!-- 配置 fastjson 支持将StringHttpMessageConverter的默认编码设为UTF-8 -->
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="defaultCharset" value="UTF-8" />
+			</bean>			
+			<bean
+				class="org.springframework.http.converter.xml.XmlAwareFormHttpMessageConverter" />
+			<bean
+				class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+			<bean
+				class="org.springframework.http.converter.BufferedImageHttpMessageConverter" />
+			
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+			
+			<bean
+				class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/html;charset=UTF-8</value>
+						<value>application/json;charset=UTF-8</value>
+					</list>
+				</property>
+				<!-- -->
+				<!-- 默认的意思就是不配置这个属性，配置了就不是默认了 -->
+				<!-- 是否输出值为null的字段 ，默认是false -->
+				<property name="features">
+					<list>
+						<value>WriteMapNullValue</value>
+						<value>QuoteFieldNames</value>
+						<value>WriteNullNumberAsZero</value>
+						<value>WriteNullListAsEmpty</value>
+						<value>WriteNullStringAsEmpty</value>
+						<value>WriteNullBooleanAsFalse</value>
+						<value>WriteDateUseDateFormat</value>
+					</list>
+				</property>
+			</bean>
+
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	<!--注意这里的顺序 一定要加载解析json的组件先加载 再开启springmvc的注解驱动 否则会报错,编译器也不会提示错误,很蛋疼 -->
+	<!--开启springmvc的注解驱动 -->
+	<mvc:annotation-driven />
+
+	<!-- 指定Spring IOC 容器扫描的包 -->
+	<!-- 可以通过resource-pattern指定扫描的资源 -->
+	<context:component-scan base-package="com.spring.controller" />
+
+	<mvc:default-servlet-handler />
+
+	<bean id="fastJsonpResponseBodyAdvice"
+		class="com.alibaba.fastjson.support.spring.FastJsonpResponseBodyAdvice">
+		<constructor-arg>
+			<list>
+				<value>callback</value>
+				<value>jsonp</value>
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<!-- 解决 fastjson 循环引用 -->
+	<bean id="DisableCircularReferenceDetect"
+		class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+		<property name="staticField"
+			value="com.alibaba.fastjson.serializer.SerializerFeature.DisableCircularReferenceDetect"></property>
+	</bean>
+
+	<!-- 静态资源配置 -->
+	<mvc:resources location="/assets/" mapping="/assets/**"></mvc:resources>
+
+	<!-- 映射的资源文件 (在Controller返回的时候进行解析视图) -->
+	<!-- 前缀 (目录) -->
+	<!-- 后缀 (.后缀的文件) -->
+	<!-- 视图层配置 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/resource/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+
+</beans>
